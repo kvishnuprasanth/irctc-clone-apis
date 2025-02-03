@@ -5,6 +5,6 @@ import onlyAdmin from '../middleware/adminAuth.js';
 const trainRouter = express.Router()
 
 trainRouter.post('/add',onlyAdmin,addTrain)
-trainRouter.post('/get',getTrains)
+trainRouter.get('/get/:source/:destination',getTrains)
 
 export default trainRouter;

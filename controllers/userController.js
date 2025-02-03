@@ -3,12 +3,11 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
-const createToken = (user)=>{
+const createToken = (user,role)=>{
     return jwt.sign({
         id: user.id,
-        name: user.name,
         email: user.email,
-        role: user.role
+        role: role
     },process.env.SECRET_JWT )
 }
 
@@ -26,7 +25,7 @@ export const registerUser = async(req,res)=>{
        
         const hashedPassword = await bcrypt.hash(password, salt);
         const newUser = await db.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',[name, email, hashedPassword])
-        const token = createToken(newUser.rows[0])
+        const token = createToken(newUser.rows[0],"user")
         res.cookie("token",token)
         res.json({success: true})
         
@@ -48,7 +47,7 @@ export const loginUser = async(req,res)=>{
         if(!validPassword){
             return res.json({success: false, message: 'Invalid password'})
         }
-        const token = createToken(user.rows[0])
+        const token = createToken(user.rows[0],"user")
         res.cookie("token",token)
         res.json({success: true})
     }catch(error){
@@ -59,21 +58,22 @@ export const loginUser = async(req,res)=>{
 
 export const adminLogin = async(req,res)=>{
     try {
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ email });
-
-        if (!user || user.password !== password) {
-            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        const { email, password, apikey} = req.body;
+        const user = await db.query('SELECT * FROM users WHERE email=$1',[email])
+        console.log(user)
+        if(user.rows.length===0){
+            return res.json({success: false, message: 'User does not exist'})
+        }
+        const validPassword = await bcrypt.compare(password, user.rows[0].password)
+        if(!validPassword){
+            return res.json({success: false, message: 'Invalid password'})
+        }
+        if (apikey !== process.env.API_KEY) {
+            return res.json({ success: false, message: "Not Authorized wrong apikey" });
         }
 
-        if (user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Not Authorized" });
-        }
 
-        const token = createToken(user)
-
-        // Set token in HTTP-only cookie
+        const token = createToken(user.rows[0],"admin")
         res.cookie("token", token);
 
         res.json({ success: true});
