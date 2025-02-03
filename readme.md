@@ -68,13 +68,13 @@ body{
 //add train
 POST http://localhost:3000/api/train/add
 body{
-    trainName, source, destination, seats 
+    trainName, source, destination, seats, startTime
 }
 cookies{
 token
 }
-// get tarin from one destination to other
-GET http://localhost:3000/api/train/get
+// get train from one destination to other
+GET http://localhost:3000/api/train/get/yoursource/yourdestination
 params{
     source, destination
 }
@@ -89,7 +89,7 @@ cookies{
 token
 }
 //get booking deatils
-POST http://localhost:3000/api/booking/get
+GET http://localhost:3000/api/booking/get
 cookies{
 token
 }
