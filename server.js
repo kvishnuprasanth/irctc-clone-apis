@@ -8,7 +8,7 @@ import trainRouter from "./routes/trainRoute.js"
 import bookingRouter from "./routes/bookingRoute.js"
 import sequelize from "./sequelize.js"
 import cookieParser from "cookie-parser"
-// import User from "./modals/User.js"
+import User from "./modals/User.js"
 import bookings from "./modals/bookings.js"
 import trains from "./modals/trains.js"
 
