@@ -7,7 +7,7 @@ This project is a railway seat booking API built using *Node.js, **Express.js, a
 - User authentication (Register/Login)
 - Train management (Admin only)
 - Seat availability check
-- Secure seat booking with transaction handling
+- seat booking
 - Role-based access control
 
 ## Tech Stack
@@ -35,35 +35,10 @@ PG_DATABASE="irctc"
 PG_PASSWORD=yourpassword
 PG_PORT="5432"
 SECRET_JWT="SECRET"
-ADMIN_EMAIL="IRCTC@gmail.com"
-ADMIN_PASSWORD="admin@123"
+API_KEY="YOUR KEY"
 
 ### 4. Set Up PostgreSQL Database
-Run the following SQL queries in *pgAdmin* 
-sql
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) ,
-    email VARCHAR(50),
-    password text
-);
-
-CREATE TABLE trains (
-    id SERIAL PRIMARY KEY,
-    train_name VARCHAR(50),
-    source VARCHAR(50) NOT NULL,
-    destination VARCHAR(50) NOT NULL,
-    seats INT NOT NULL 
-);
-
-CREATE TABLE bookings (
-    id SERIAL PRIMARY KEY,
-    user_id INT,
-    train_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (train_id) REFERENCES trains(id)
-);
-
+create a db as irctc
 
 
 ### 5. Start the Server
@@ -86,7 +61,7 @@ body{
 //admin login
 POST http://localhost:3000/api/user/admin
 body{
-    admin_email, admin_password
+    email, password, apikey
 }
 
 ## trains
@@ -95,12 +70,12 @@ POST http://localhost:3000/api/train/add
 body{
     trainName, source, destination, seats 
 }
-headers{
-    token
+cookies{
+token
 }
 // get tarin from one destination to other
-POST http://localhost:3000/api/train/get
-body{
+GET http://localhost:3000/api/train/get
+params{
     source, destination
 }
 
@@ -110,11 +85,11 @@ POST http://localhost:3000/api/booking/book
 body{
      source, destination
 }
-headers{
-    token
+cookies{
+token
 }
 //get booking deatils
 POST http://localhost:3000/api/booking/get
-headers{
-    token
+cookies{
+token
 }
