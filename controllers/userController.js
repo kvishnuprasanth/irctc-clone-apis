@@ -3,9 +3,15 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
-const createToken = (id)=>{
-    return jwt.sign({id},process.env.SECRET_JWT )
+const createToken = (user)=>{
+    return jwt.sign({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    },process.env.SECRET_JWT )
 }
+
 
 export const registerUser = async(req,res)=>{
     const {name, email, password} = req.body;
@@ -20,8 +26,10 @@ export const registerUser = async(req,res)=>{
        
         const hashedPassword = await bcrypt.hash(password, salt);
         const newUser = await db.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',[name, email, hashedPassword])
-        const token = createToken(newUser.rows[0].id)
-        res.json({success: true, token})
+        const token = createToken(newUser.rows[0])
+        res.cookie("token",token)
+        res.json({success: true})
+        
 
     }catch(error){
         console.log(error)
@@ -40,28 +48,40 @@ export const loginUser = async(req,res)=>{
         if(!validPassword){
             return res.json({success: false, message: 'Invalid password'})
         }
-        const token = createToken(user.rows[0].id)
-        res.json({success: true, token})
+        const token = createToken(user.rows[0])
+        res.cookie("token",token)
+        res.json({success: true})
     }catch(error){
         console.log(error)
         res.json({success: false, message: error.message})
     }
 }
 
-//Route for admin login
- export const adminLogin = async(req,res)=>{
-    try{
-        const {email,password} = req.body;
-        if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD){
-            const token = jwt.sign(email+password,process.env.SECRET_JWT);
-            res.json({success:true,token})
-        } else{
-            res.json({success:false, message: "Invalid credentials"})
+export const adminLogin = async(req,res)=>{
+    try {
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+
+        if (!user || user.password !== password) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
-    }catch(error){
-        console.log(error);
-        res.json({success: false, message:error.message})
+        if (user.role !== "admin") {
+            return res.status(403).json({ success: false, message: "Not Authorized" });
+        }
+
+        const token = createToken(user)
+
+        // Set token in HTTP-only cookie
+        res.cookie("token", token);
+
+        res.json({ success: true});
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
     }
+
 
 }
