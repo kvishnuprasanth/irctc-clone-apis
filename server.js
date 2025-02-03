@@ -8,6 +8,7 @@ import trainRouter from "./routes/trainRoute.js"
 import bookingRouter from "./routes/bookingRoute.js"
 import sequelize from "./sequelize.js"
 import cookieParser from "cookie-parser"
+import db from "./db.js"
 import User from "./modals/User.js"
 import bookings from "./modals/bookings.js"
 import trains from "./modals/trains.js"
@@ -38,13 +39,8 @@ app.use('/api/booking',bookingRouter)
 
 
 
-const db = new pg.Client({
-    user: process.env.PG_USER,
-    host: process.env.PG_HOST,
-    database: process.env.PG_DATABASE,
-    password: process.env.PG_PASSWORD,
-    port: process.env.PG_PORT,
-  });
+
+
   db.connect()
   .then(()=>console.log('Database connected....'))
   .catch(err=>console.log('Error: ' + err))
